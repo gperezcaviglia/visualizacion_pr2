@@ -1,0 +1,822 @@
+---
+title: 'Más allá de Harvard: Análisis del College Scorecard'
+author: "Gabriela Alejandra Pérez"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    toc_float: true
+    number_sections: true
+    theme: flatly
+    highlight: tango
+    code_folding: show
+    df_print: paged
+  pdf_document:
+    toc: true
+    toc_depth: '3'
+subtitle: Explorando las desigualdades en la educación superior estadounidense
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width = 10,
+  fig.height = 6,
+  fig.align = "center"
+)
+```
+
+# Introducción {#intro}
+
+## Contexto del proyecto
+
+Este documento presenta el análisis exploratorio de datos realizado para el proyecto de visualización **"Más allá de Harvard: El verdadero costo de la educación superior en EE.UU."**, desarrollado como parte de la asignatura de Visualización de Datos del Máster en Ciencia de Datos de la UOC.
+
+El objetivo principal es examinar las desigualdades estructurales en el sistema de educación superior estadounidense, analizando:
+
+- **Costos** por tipo de institución
+- **Retorno de inversión** educativa
+- **Brechas de género** en endeudamiento
+- **Disparidades raciales** en tasas de graduación
+
+## Fuente de datos
+
+Este análisis utiliza el **U.S. College Scorecard**, un dataset oficial del Departamento de Educación de Estados Unidos que contiene información detallada sobre instituciones de educación superior.
+
+- **Fuente**: [College Scorecard](https://collegescorecard.ed.gov/data/)
+- **Archivo**: Most-Recent-Cohorts-Institution.csv
+- **Última actualización**: Noviembre 2025
+- **Variables originales**: 3,567
+- **Variables seleccionadas**: 24
+
+---
+
+# Configuración del entorno {#config}
+
+## Carga de librerías
+
+Para comenzar, se cargan las librerías necesarias:
+
+```{r librerias}
+# ============================================================
+# LIBRERÍAS NECESARIAS
+# ============================================================
+
+# Manipulación de datos
+library(tidyverse)    # Incluye dplyr, ggplot2, tidyr, readr, etc.
+
+# Visualización
+library(scales)       # Formateo de escalas en gráficos
+
+# Tablas
+library(knitr)        # Para tablas en RMarkdown
+library(kableExtra)   # Tablas formateadas
+
+# Estadísticas
+library(skimr)        # Resúmenes estadísticos
+```
+
+## Definición de paleta de colores
+
+La siguiente paleta de colores se utiliza en todo el análisis y la visualización final:
+
+```{r paleta}
+# ============================================================
+# PALETA DE COLORES DEL PROYECTO
+# ============================================================
+
+colores <- list(
+  publica = "#2E86AB",           # Azul - Instituciones públicas
+  privada_sin_lucro = "#7B2D8E", # Púrpura - Privadas sin fines de lucro
+  privada_con_lucro = "#E07A2F", # Naranja - Privadas con fines de lucro
+  acento = "#B8343B",            # Rojo oscuro - Elementos destacados
+  texto = "#1a1a1a",             # Texto principal
+  fondo = "#FAFAF8"              # Fondo claro
+)
+
+# Paleta para ggplot2
+paleta_control <- c(
+  "Pública" = colores$publica,
+  "Privada sin lucro" = colores$privada_sin_lucro,
+  "Privada con lucro" = colores$privada_con_lucro
+)
+
+# Paleta para gráficos de raza (igual que en D3.js)
+paleta_raza <- c(
+  "Blancos" = "#5C6B73",
+  "Afrodescendientes" = "#2D3436",
+  "Hispanos" = "#D4812A"
+)
+
+# Tema personalizado que replica el estilo de la visualización D3.js
+tema_viz <- theme_minimal(base_size = 14) +
+  theme(
+    text = element_text(family = "sans", color = colores$texto),
+    plot.title = element_text(face = "bold", size = 16, color = colores$texto),
+    plot.subtitle = element_text(size = 12, color = "#666666"),
+    plot.background = element_rect(fill = colores$fondo, color = NA),
+    panel.background = element_rect(fill = colores$fondo, color = NA),
+    panel.grid.major = element_line(color = "#E0E0E0", linewidth = 0.3),
+    panel.grid.minor = element_blank(),
+    legend.position = "bottom",
+    legend.background = element_rect(fill = colores$fondo, color = NA),
+    axis.text = element_text(color = colores$texto),
+    axis.title = element_text(color = colores$texto, face = "bold")
+  )
+```
+
+---
+
+# Preparación de datos {#preparacion}
+
+El archivo original `Most-Recent-Cohorts-Institution.csv` contiene más de 3,500 variables. En esta sección se realiza la limpieza y transformación para generar un dataset manejable con las 24 variables relevantes para el análisis.
+
+## Carga del archivo original
+
+```{r carga-original}
+# ============================================================
+# CARGA DEL ARCHIVO ORIGINAL
+# ============================================================
+# Descargar de: https://collegescorecard.ed.gov/data/
+# Archivo: Most Recent Institution-Level Data
+
+df_raw <- read_csv("Most-Recent-Cohorts-Institution.csv",
+                   na = c("NULL", "PrivacySuppressed", "NA", ""),
+                   show_col_types = FALSE)
+
+cat("Archivo original cargado correctamente\n")
+cat("   Filas:", format(nrow(df_raw), big.mark = ","), "\n")
+cat("   Columnas:", format(ncol(df_raw), big.mark = ","), "\n")
+```
+
+## Selección de variables
+
+De las mas de tres mil variables originales, se seleccionan 24 variables relevantes para el análisis:
+
+```{r seleccion-variables}
+# ============================================================
+# SELECCIÓN DE VARIABLES RELEVANTES
+# ============================================================
+
+variables_seleccionadas <- c(
+  # Identificadores
+  "UNITID",
+  "INSTNM",
+  "CITY",
+  "STABBR",
+  "CONTROL",
+  
+  # Costos
+  "COSTT4_A",
+  "TUITIONFEE_IN",
+  
+  # Deuda
+  "DEBT_MDN",
+  "FEMALE_DEBT_MDN",
+  "MALE_DEBT_MDN",
+  
+  # Graduación
+  "C150_4",
+  "C150_4_WHITE",
+  "C150_4_BLACK",
+  "C150_4_HISP",
+  "C150_4_ASIAN",
+  
+  # Ingresos
+  "MD_EARN_WNE_P10",
+  
+  # Demografía estudiantes
+  "UGDS",
+  "UGDS_WHITE",
+  "UGDS_BLACK",
+  "UGDS_HISP",
+  "UGDS_ASIAN",
+  "UGDS_MEN",
+  "UGDS_WOMEN",
+  "PCTPELL"
+)
+
+df <- df_raw %>%
+  select(all_of(variables_seleccionadas))
+
+cat("Variables seleccionadas:", ncol(df), "de", ncol(df_raw), "originales\n")
+```
+
+## Conversión de tipos de datos
+
+Algunas variables numéricas vienen como texto en el archivo original:
+
+```{r conversion-tipos}
+# ============================================================
+# CONVERSIÓN DE TIPOS DE DATOS
+# ============================================================
+
+df <- df %>%
+  mutate(
+    # Variables de costos e ingresos
+    across(c(COSTT4_A, TUITIONFEE_IN, DEBT_MDN, FEMALE_DEBT_MDN, 
+             MALE_DEBT_MDN, MD_EARN_WNE_P10, UGDS), as.numeric),
+    # Variables de proporciones
+    across(c(C150_4, C150_4_WHITE, C150_4_BLACK, C150_4_HISP, C150_4_ASIAN,
+             UGDS_WHITE, UGDS_BLACK, UGDS_HISP, UGDS_ASIAN, 
+             UGDS_MEN, UGDS_WOMEN, PCTPELL), as.numeric)
+  )
+
+cat("Tipos de datos convertidos correctamente\n")
+```
+
+## Creación de etiquetas
+
+Para facilitar la interpretación, el código numérico de control institucional recibe una etiqueta legible:
+
+```{r etiquetas-control}
+# ============================================================
+# ETIQUETAS DE TIPO DE CONTROL
+# ============================================================
+# CONTROL: 1 = Pública, 2 = Privada sin lucro, 3 = Privada con lucro
+
+df <- df %>%
+  mutate(
+    CONTROL_LABEL = case_when(
+      CONTROL == 1 ~ "Pública",
+      CONTROL == 2 ~ "Privada sin lucro",
+      CONTROL == 3 ~ "Privada con lucro",
+      TRUE ~ NA_character_
+    )
+  )
+
+# Verificar distribución
+table(df$CONTROL_LABEL, useNA = "ifany")
+```
+
+## Cálculo de métricas derivadas
+
+El análisis requiere tres métricas clave que no vienen en el dataset original:
+
+```{r metricas-derivadas}
+# ============================================================
+# MÉTRICAS DERIVADAS
+# ============================================================
+
+df <- df %>%
+  mutate(
+    # 1. Índice de retorno de inversión
+    #    (Ingresos medianos a 10 años / Deuda mediana)
+    RETORNO_INVERSION = round(MD_EARN_WNE_P10 / DEBT_MDN, 2),
+    
+    # 2. Brecha de género en deuda (%)
+    #    ((Deuda mujeres - Deuda hombres) / Deuda hombres) * 100
+    BRECHA_DEUDA_GENERO = round(
+      (FEMALE_DEBT_MDN - MALE_DEBT_MDN) / MALE_DEBT_MDN * 100, 1
+    ),
+    
+    # 3. Brecha racial en graduación (puntos porcentuales)
+    #    (Graduación blancos - Graduación afrodescendientes) * 100
+    BRECHA_GRAD_RACIAL = round(
+      (C150_4_WHITE - C150_4_BLACK) * 100, 1
+    )
+  )
+
+cat("Métricas derivadas calculadas:\n")
+cat("   - RETORNO_INVERSION: Ingresos 10 años / Deuda\n")
+cat("   - BRECHA_DEUDA_GENERO: Diferencia % entre mujeres y hombres\n")
+cat("   - BRECHA_GRAD_RACIAL: Diferencia pp entre blancos y afrodescendientes\n")
+```
+
+## Filtrado de instituciones válidas
+
+Finalmente, el dataset excluye instituciones sin datos esenciales:
+
+```{r filtrado}
+# ============================================================
+# FILTRADO DE INSTITUCIONES VÁLIDAS
+# ============================================================
+
+n_antes <- nrow(df)
+
+df <- df %>%
+  filter(
+    !is.na(CONTROL_LABEL),
+    !is.na(INSTNM)
+  )
+
+n_despues <- nrow(df)
+
+cat("Instituciones antes del filtrado:", format(n_antes, big.mark = ","), "\n")
+cat("Instituciones después del filtrado:", format(n_despues, big.mark = ","), "\n")
+cat("Instituciones eliminadas:", format(n_antes - n_despues, big.mark = ","), "\n")
+```
+
+---
+
+# Exploración del dataset {#exploracion}
+
+## Estructura del dataset
+
+Con el dataset preparado, se revisa su estructura y tipos de variables:
+
+```{r estructura}
+# ============================================================
+# ESTRUCTURA DEL DATASET
+# ============================================================
+
+glimpse(df)
+```
+
+## Variables disponibles
+
+```{r variables-tabla}
+# ============================================================
+# DESCRIPCIÓN DE VARIABLES
+# ============================================================
+
+variables_desc <- tribble(
+  ~Variable, ~Descripción, ~Tipo,
+  "UNITID", "Identificador único de la institución", "ID",
+  "INSTNM", "Nombre de la institución", "Texto",
+  "CITY", "Ciudad", "Texto",
+  "STABBR", "Estado (abreviatura)", "Texto",
+  "CONTROL", "Tipo de control (1=Pública, 2=Priv s/l, 3=Priv c/l)", "Numérico",
+  "CONTROL_LABEL", "Etiqueta del tipo de control", "Texto",
+  "COSTT4_A", "Costo anual promedio de asistencia", "Numérico",
+  "TUITIONFEE_IN", "Matrícula para residentes del estado", "Numérico",
+  "DEBT_MDN", "Deuda mediana al graduarse", "Numérico",
+  "FEMALE_DEBT_MDN", "Deuda mediana - Mujeres", "Numérico",
+  "MALE_DEBT_MDN", "Deuda mediana - Hombres", "Numérico",
+  "C150_4", "Tasa de graduación a 6 años (general)", "Proporción",
+  "C150_4_WHITE", "Tasa de graduación - Blancos", "Proporción",
+  "C150_4_BLACK", "Tasa de graduación - Afrodescendientes", "Proporción",
+  "C150_4_HISP", "Tasa de graduación - Hispanos", "Proporción",
+  "C150_4_ASIAN", "Tasa de graduación - Asiáticos", "Proporción",
+  "MD_EARN_WNE_P10", "Ingresos medianos 10 años post-graduación", "Numérico",
+  "UGDS", "Total de estudiantes de pregrado", "Numérico",
+  "PCTPELL", "Proporción con becas Pell (bajos ingresos)", "Proporción",
+  "RETORNO_INVERSION", "Índice de retorno (ingresos/deuda)", "Calculado",
+  "BRECHA_DEUDA_GENERO", "Brecha de género en deuda (%)", "Calculado",
+  "BRECHA_GRAD_RACIAL", "Brecha racial en graduación (pp)", "Calculado"
+)
+
+kable(variables_desc, caption = "Variables del dataset College Scorecard") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                full_width = FALSE) %>%
+  column_spec(1, bold = TRUE, color = colores$acento)
+```
+
+## Resumen estadístico
+
+```{r resumen-estadistico}
+# ============================================================
+# RESUMEN ESTADÍSTICO
+# ============================================================
+
+df %>%
+  select(COSTT4_A, DEBT_MDN, FEMALE_DEBT_MDN, MALE_DEBT_MDN,
+         C150_4, MD_EARN_WNE_P10, RETORNO_INVERSION) %>%
+  skim()
+```
+
+---
+
+# Distribución por tipo de institución {#distribucion}
+
+Antes de los análisis específicos, se presenta la composición del sistema de educación superior estadounidense.
+
+## Conteo de instituciones
+
+```{r conteo-instituciones}
+# ============================================================
+# DISTRIBUCIÓN POR TIPO DE INSTITUCIÓN
+# ============================================================
+
+conteo <- df %>%
+  count(CONTROL_LABEL, name = "n_instituciones") %>%
+  mutate(
+    porcentaje = n_instituciones / sum(n_instituciones) * 100,
+    porcentaje_fmt = paste0(round(porcentaje, 1), "%")
+  )
+
+kable(conteo, 
+      col.names = c("Tipo de institución", "N° instituciones", "Porcentaje", ""),
+      caption = "Distribución de instituciones por tipo de control") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE)
+```
+
+## Visualización de la distribución
+
+```{r grafico-distribucion, fig.cap="Distribución de instituciones por tipo de control"}
+# ============================================================
+# GRÁFICO 0: DISTRIBUCIÓN POR TIPO 
+# ============================================================
+
+ggplot(conteo, aes(x = reorder(CONTROL_LABEL, -n_instituciones), 
+                   y = n_instituciones, 
+                   fill = CONTROL_LABEL)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = paste0(n_instituciones, "\n(", porcentaje_fmt, ")")),
+            vjust = -0.3, size = 4) +
+  scale_fill_manual(values = paleta_control) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(
+    title = "Distribución de instituciones de educación superior",
+    subtitle = paste("Total:", format(sum(conteo$n_instituciones), big.mark = ","), "instituciones"),
+    x = NULL,
+    y = "Número de instituciones"
+  ) +
+  tema_viz +
+  theme(
+    legend.position = "none",
+    panel.grid.major.x = element_blank()
+  )
+```
+
+---
+
+# Análisis 1: Costo por tipo de institución {#costo}
+
+## Pregunta de investigación
+
+> **¿Cuánto cuesta cada tipo de institución?**
+
+El primer análisis examina los costos reales por categoría institucional.
+
+## Cálculo de estadísticas
+
+```{r costo-estadisticas}
+costo_stats <- df %>%
+  filter(!is.na(COSTT4_A)) %>%
+  group_by(CONTROL_LABEL) %>%
+  summarise(
+    n = n(),
+    media = mean(COSTT4_A),
+    mediana = median(COSTT4_A),
+    desv_est = sd(COSTT4_A),
+    minimo = min(COSTT4_A),
+    maximo = max(COSTT4_A),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(media))
+
+kable(costo_stats,
+      col.names = c("Tipo", "N", "Media", "Mediana", "Desv. Est.", "Mín", "Máx"),
+      digits = 0,
+      format.args = list(big.mark = ","),
+      caption = "Estadísticas de costo anual por tipo de institución") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE)
+```
+
+## Hallazgo principal
+
+```{r costo-hallazgo}
+costo_publica <- costo_stats$media[costo_stats$CONTROL_LABEL == "Pública"]
+costo_privada_sl <- costo_stats$media[costo_stats$CONTROL_LABEL == "Privada sin lucro"]
+ratio <- costo_privada_sl / costo_publica
+
+cat("HALLAZGO PRINCIPAL:\n")
+cat("- Costo promedio públicas: $", format(round(costo_publica), big.mark = ","), "\n")
+cat("- Costo promedio privadas sin lucro: $", format(round(costo_privada_sl), big.mark = ","), "\n")
+cat("- Las privadas sin lucro cuestan", round(ratio, 1), "veces más que las públicas\n")
+```
+
+## Visualización
+
+```{r grafico-costo, fig.cap="Costo anual promedio por tipo de institución"}
+# ============================================================
+# GRÁFICO 1: COSTO POR TIPO - LOLLIPOP HORIZONTAL
+# (Igual que en la visualización D3.js)
+# ============================================================
+
+ggplot(costo_stats, aes(x = reorder(CONTROL_LABEL, media), y = media, color = CONTROL_LABEL)) +
+  geom_segment(aes(xend = CONTROL_LABEL, y = 0, yend = media), 
+               linewidth = 3, alpha = 0.9) +
+  geom_point(size = 10) +
+  geom_text(aes(label = paste0("$", format(round(media), big.mark = ","))),
+            hjust = -0.3, size = 4.5, fontface = "bold", color = colores$texto) +
+  coord_flip() +
+  scale_color_manual(values = paleta_control) +
+  scale_y_continuous(labels = label_dollar(), 
+                     expand = expansion(mult = c(0, 0.25)),
+                     limits = c(0, NA)) +
+  labs(
+    title = "Costo anual promedio de asistencia",
+    subtitle = "Por tipo de institución",
+    x = NULL,
+    y = "Costo anual (USD)"
+  ) +
+  tema_viz +
+  theme(
+    legend.position = "none",
+    panel.grid.major.y = element_blank()
+  )
+```
+
+---
+
+# Análisis 2: Retorno de inversión {#retorno}
+
+## Pregunta de investigación
+
+> **¿El retorno justifica la inversión?**
+
+El costo por sí solo no refleja el valor de una inversión educativa. El índice de retorno evalúa si la deuda adquirida se compensa con mejores ingresos:
+
+$$\text{Retorno} = \frac{\text{Ingresos medianos a 10 años}}{\text{Deuda mediana}}$$
+
+Un valor de 5x significa que por cada dólar de deuda, el graduado gana cinco dólares en ingresos a 10 años.
+
+## Cálculo de estadísticas
+
+```{r retorno-estadisticas}
+retorno_stats <- df %>%
+  filter(!is.na(RETORNO_INVERSION)) %>%
+  group_by(CONTROL_LABEL) %>%
+  summarise(
+    n = n(),
+    media = mean(RETORNO_INVERSION),
+    mediana = median(RETORNO_INVERSION),
+    desv_est = sd(RETORNO_INVERSION),
+    .groups = "drop"
+  ) %>%
+  arrange(desc(media))
+
+kable(retorno_stats,
+      col.names = c("Tipo", "N", "Media", "Mediana", "Desv. Est."),
+      digits = 2,
+      caption = "Índice de retorno de inversión por tipo de institución") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE)
+```
+
+## Hallazgo principal
+
+```{r retorno-hallazgo}
+retorno_publica <- retorno_stats$media[retorno_stats$CONTROL_LABEL == "Pública"]
+retorno_privada_sl <- retorno_stats$media[retorno_stats$CONTROL_LABEL == "Privada sin lucro"]
+retorno_privada_cl <- retorno_stats$media[retorno_stats$CONTROL_LABEL == "Privada con lucro"]
+
+cat("HALLAZGO PRINCIPAL:\n")
+cat("- Retorno públicas:", round(retorno_publica, 1), "x\n")
+cat("- Retorno privadas sin lucro:", round(retorno_privada_sl, 1), "x\n")
+cat("- Retorno privadas con lucro:", round(retorno_privada_cl, 1), "x\n")
+cat("\nNOTA: Las privadas sin lucro y con lucro tienen\n")
+cat("   prácticamente el mismo retorno (~3.7x), a pesar de que\n")
+cat("   las sin lucro cuestan significativamente más.\n")
+```
+
+## Visualización
+
+```{r grafico-retorno, fig.cap="Retorno de inversión por tipo de institución"}
+# ============================================================
+# GRÁFICO 2: RETORNO DE INVERSIÓN - BARRAS HORIZONTALES
+# (Igual que en la visualización D3.js)
+# ============================================================
+
+ggplot(retorno_stats, aes(x = reorder(CONTROL_LABEL, media), y = media, fill = CONTROL_LABEL)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = paste0(round(media, 1), "x")),
+            hjust = -0.15, size = 5, fontface = "bold", color = colores$texto) +
+  coord_flip() +
+  scale_fill_manual(values = paleta_control) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.18)),
+                     limits = c(0, NA)) +
+  labs(
+    title = "Retorno de inversión educativa",
+    subtitle = "Ingresos a 10 años / Deuda mediana",
+    x = NULL,
+    y = "Índice de retorno"
+  ) +
+  tema_viz +
+  theme(
+    legend.position = "none",
+    panel.grid.major.y = element_blank()
+  )
+```
+
+---
+
+# Análisis 3: Brecha de género en deuda {#genero}
+
+## Pregunta de investigación
+
+> **¿Existe una brecha de género en el endeudamiento estudiantil?**
+
+La distribución de la deuda estudiantil presenta diferencias según el género. Las mujeres representan casi dos tercios de los deudores en Estados Unidos. Este análisis examina si dicho patrón se refleja en los datos del College Scorecard.
+
+## Cálculo de estadísticas
+
+```{r genero-estadisticas}
+genero_stats <- df %>%
+  filter(!is.na(FEMALE_DEBT_MDN) & !is.na(MALE_DEBT_MDN)) %>%
+  group_by(CONTROL_LABEL) %>%
+  summarise(
+    n = n(),
+    deuda_mujeres = mean(FEMALE_DEBT_MDN),
+    deuda_hombres = mean(MALE_DEBT_MDN),
+    brecha_absoluta = deuda_mujeres - deuda_hombres,
+    brecha_porcentual = (deuda_mujeres - deuda_hombres) / deuda_hombres * 100,
+    .groups = "drop"
+  )
+
+kable(genero_stats,
+      col.names = c("Tipo", "N", "Deuda Mujeres", "Deuda Hombres", 
+                    "Brecha ($)", "Brecha (%)"),
+      digits = c(0, 0, 0, 0, 0, 1),
+      format.args = list(big.mark = ","),
+      caption = "Deuda estudiantil por género y tipo de institución") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE)
+```
+
+## Visualización (Dumbbell chart)
+
+```{r grafico-genero, fig.cap="Brecha de género en deuda estudiantil"}
+# ============================================================
+# GRÁFICO 3: BRECHA DE GÉNERO - DUMBBELL CHART
+# (Igual que en la visualización D3.js)
+# ============================================================
+
+# Se preparan datos para dumbbell
+genero_long <- genero_stats %>%
+  select(CONTROL_LABEL, deuda_mujeres, deuda_hombres) %>%
+  pivot_longer(cols = c(deuda_mujeres, deuda_hombres),
+               names_to = "genero",
+               values_to = "deuda") %>%
+  mutate(genero = ifelse(genero == "deuda_mujeres", "Mujeres", "Hombres"))
+
+ggplot(genero_stats, aes(y = CONTROL_LABEL)) +
+  # Línea conectora
+  geom_segment(aes(x = deuda_hombres, xend = deuda_mujeres,
+                   y = CONTROL_LABEL, yend = CONTROL_LABEL),
+               color = "#CCCCCC", linewidth = 3) +
+  # Puntos hombres
+  geom_point(aes(x = deuda_hombres), color = "#5C6B73", size = 8) +
+  # Puntos mujeres
+  geom_point(aes(x = deuda_mujeres), color = colores$acento, size = 8) +
+  # Etiquetas valores
+  geom_text(aes(x = deuda_hombres, label = paste0("$", format(round(deuda_hombres), big.mark = ","))),
+            vjust = -1.8, size = 3.5, color = "#5C6B73") +
+  geom_text(aes(x = deuda_mujeres, label = paste0("$", format(round(deuda_mujeres), big.mark = ","))),
+            vjust = -1.8, size = 3.5, color = colores$acento) +
+  # Brecha porcentual
+  geom_text(aes(x = (deuda_hombres + deuda_mujeres) / 2,
+                label = paste0("+", round(brecha_porcentual, 1), "%")),
+            vjust = 3, size = 4, fontface = "bold", color = colores$texto) +
+  scale_x_continuous(labels = label_dollar(),
+                     expand = expansion(mult = c(0.05, 0.1))) +
+  labs(
+    title = "Brecha de género en deuda estudiantil",
+    subtitle = "Hombres (gris) vs Mujeres (rojo)",
+    x = "Deuda mediana (USD)",
+    y = NULL
+  ) +
+  tema_viz +
+  theme(
+    panel.grid.major.y = element_blank()
+  )
+```
+
+---
+
+# Análisis 4: Disparidades raciales en graduación {#raza}
+
+## Pregunta de investigación
+
+> **¿Existen disparidades raciales en las tasas de graduación?**
+
+El acceso a la universidad no garantiza su finalización. Este análisis examina si las tasas de graduación difieren según el origen racial de los estudiantes.
+
+## Cálculo de estadísticas
+
+```{r raza-estadisticas}
+raza_stats <- df %>%
+  filter(!is.na(C150_4_WHITE) & !is.na(C150_4_BLACK) & !is.na(C150_4_HISP)) %>%
+  group_by(CONTROL_LABEL) %>%
+  summarise(
+    n = n(),
+    grad_blancos = mean(C150_4_WHITE) * 100,
+    grad_afro = mean(C150_4_BLACK) * 100,
+    grad_hispanos = mean(C150_4_HISP) * 100,
+    brecha_blanco_afro = grad_blancos - grad_afro,
+    .groups = "drop"
+  )
+
+kable(raza_stats,
+      col.names = c("Tipo", "N", "Blancos (%)", "Afrodesc. (%)", 
+                    "Hispanos (%)", "Brecha B-A (pp)"),
+      digits = 1,
+      caption = "Tasas de graduación por raza y tipo de institución") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE)
+```
+
+## Brecha racial general
+
+```{r raza-general}
+brecha_general <- df %>%
+  filter(!is.na(C150_4_WHITE) & !is.na(C150_4_BLACK)) %>%
+  summarise(
+    grad_blancos = mean(C150_4_WHITE) * 100,
+    grad_afro = mean(C150_4_BLACK) * 100,
+    brecha = grad_blancos - grad_afro
+  )
+
+cat("BRECHA RACIAL GENERAL:\n")
+cat("- Graduación blancos (promedio):", round(brecha_general$grad_blancos, 1), "%\n")
+cat("- Graduación afrodescendientes:", round(brecha_general$grad_afro, 1), "%\n")
+cat("- BRECHA:", round(brecha_general$brecha, 0), "puntos porcentuales\n")
+```
+
+## Visualización (Barras agrupadas)
+
+```{r grafico-raza, fig.cap="Tasas de graduación por raza y tipo de institución"}
+# ============================================================
+# GRÁFICO 4: GRADUACIÓN POR RAZA - BARRAS AGRUPADAS
+# (Igual que en la visualización D3.js)
+# ============================================================
+
+# Se preparan datos en formato largo
+raza_long <- raza_stats %>%
+  select(CONTROL_LABEL, grad_blancos, grad_afro, grad_hispanos) %>%
+  pivot_longer(cols = starts_with("grad_"),
+               names_to = "raza",
+               values_to = "graduacion") %>%
+  mutate(
+    raza = case_when(
+      raza == "grad_blancos" ~ "Blancos",
+      raza == "grad_afro" ~ "Afrodescendientes",
+      raza == "grad_hispanos" ~ "Hispanos"
+    ),
+    # Ordenar factores para que coincida con D3.js
+    raza = factor(raza, levels = c("Blancos", "Afrodescendientes", "Hispanos"))
+  )
+
+ggplot(raza_long, aes(x = CONTROL_LABEL, y = graduacion, fill = raza)) +
+  geom_col(position = position_dodge(width = 0.8), width = 0.7) +
+  geom_text(aes(label = paste0(round(graduacion, 1), "%")),
+            position = position_dodge(width = 0.8),
+            vjust = -0.5, size = 3.5, color = colores$texto) +
+  scale_fill_manual(values = paleta_raza) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.12)),
+                     limits = c(0, NA),
+                     labels = function(x) paste0(x, "%")) +
+  labs(
+    title = "El peso del origen: tasas de graduación por raza",
+    subtitle = "Por tipo de institución",
+    x = NULL,
+    y = "Tasa de graduación a 6 años",
+    fill = "Grupo racial"
+  ) +
+  tema_viz +
+  theme(
+    panel.grid.major.x = element_blank(),
+    legend.position = "bottom"
+  )
+```
+
+---
+
+# Resumen de hallazgos {#resumen}
+
+```{r tabla-resumen}
+resumen <- tribble(
+  ~Dimensión, ~Hallazgo_Principal, ~Valor_Clave,
+  "Costo", "Las privadas sin lucro son las más caras", "$44,773/año",
+  "Retorno", "Las públicas ofrecen el mejor retorno", "5.4x vs 3.7x",
+  "Género", "Las mujeres se endeudan más en todos los tipos", "Hasta 9.7% más",
+  "Raza", "Brecha significativa en graduación", "15 puntos porcentuales"
+)
+
+kable(resumen,
+      col.names = c("Dimensión", "Hallazgo principal", "Valor clave"),
+      caption = "Resumen de hallazgos principales") %>%
+  kable_styling(bootstrap_options = c("striped", "hover"),
+                full_width = FALSE) %>%
+  column_spec(1, bold = TRUE, color = colores$acento)
+```
+
+---
+
+# Conclusiones {#conclusiones}
+
+El análisis permite extraer las siguientes conclusiones:
+
+1. **El costo no garantiza calidad**: Las universidades privadas sin fines de lucro cuestan 2.5 veces más que las públicas, pero ofrecen prácticamente el mismo retorno de inversión (3.7x) que las privadas con fines de lucro.
+
+2. **Las públicas son la mejor opción económica**: Con un retorno de 5.4x a menor costo, las instituciones públicas emergen como la opción más eficiente para los estudiantes.
+
+3. **La brecha de género persiste**: Las mujeres se endeudan consistentemente más que los hombres en todos los tipos de institución, hasta un 9.7% más en las públicas.
+
+4. **Las disparidades raciales son significativas**: 15 puntos porcentuales separan las tasas de graduación de estudiantes blancos y afrodescendientes.
+
+## Marco teórico
+
+Estos resultados son consistentes con la teoría de la reproducción social. Según **Bourdieu y Passeron (1977)**, la educación tiende a reproducir las desigualdades existentes en lugar de corregirlas. En la misma línea, **Bowles y Gintis (1976)** argumentaron que el sistema educativo legitima las jerarquías sociales existentes.
+
+Los datos del College Scorecard, analizados desde múltiples dimensiones, sugieren que persisten barreras estructurales en el sistema de educación superior estadounidense.
+
+---
+
+
