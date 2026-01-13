@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Más allá de Harvard | Gabriela Alejandra Perez</title>
+    
+    <!-- Fuentes tipográficas -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Source+Sans+Pro:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Iconos Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <!-- D3.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    
+    <style>
+        :root {
+            --color-bg: #FAFAF8;
+            --color-bg-alt: #FFFFFF;
+            --color-text: #1a1a1a;
+            --color-text-light: #555555;
+            --color-text-muted: #888888;
+            --color-accent: #B8343B;
+            --color-accent-light: rgba(184, 52, 59, 0.1);
+            --color-border: #E8E8E8;
+            
+            --color-public: #2E86AB;
+            --color-private-np: #7B2D8E;
+            --color-private-fp: #E07A2F;
+            
+            --color-female: #B8343B;
+            --color-male: #2E86AB;
+            
+            --color-white-race: #5C6B73;
+            --color-black-race: #2D3436;
+            --color-hispanic: #D4812A;
+            
+            --font-display: 'Playfair Display', Georgia, serif;
+            --font-body: 'Lora', Georgia, serif;
+            --font-ui: 'Source Sans Pro', -apple-system, sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--color-bg);
+            color: var(--color-text);
+            line-height: 1.75;
+            font-size: 18px;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            background: 
+                linear-gradient(180deg, rgba(26,26,26,0.7) 0%, rgba(26,26,26,0.85) 100%),
+                url('https://images.unsplash.com/photo-1627556704290-2b1f5853ff78?w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            color: #fff;
+        }
+
+        #hero-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.25;
+        }
+
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            max-width: 900px;
+        }
+
+        .hero-label {
+            font-family: var(--font-ui);
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+
+        .hero-title {
+            font-family: var(--font-display);
+            font-size: clamp(3rem, 10vw, 5.5rem);
+            font-weight: 900;
+            line-height: 1.05;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 4px 30px rgba(0,0,0,0.3);
+        }
+
+        .hero-subtitle {
+            font-family: var(--font-body);
+            font-size: clamp(1.1rem, 3vw, 1.4rem);
+            font-weight: 400;
+            font-style: italic;
+            color: rgba(255,255,255,0.9);
+            max-width: 650px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 2rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 1.5rem 2.5rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .hero-stat {
+            text-align: center;
+        }
+
+        .hero-stat-number {
+            font-family: var(--font-display);
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: #fff;
+            display: block;
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-stat-label {
+            font-family: var(--font-ui);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .hero-byline {
+            font-size: 2.5rem;
+            color: rgba(255,255,255,0.5);
+            margin-top: 1.5rem;
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s ease-in-out infinite;
+            z-index: 2;
+        }
+
+        .scroll-indicator i {
+            font-size: 1.5rem;
+            color: rgba(255,255,255,0.6);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(10px); }
+        }
+
+        /* Content */
+        .content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        /* Intro */
+        .intro {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 5rem 2rem;
+            text-align: center;
+        }
+
+        .intro-icon {
+            font-size: 2.5rem;
+            color: var(--color-accent);
+            margin-bottom: 2rem;
+            opacity: 0.7;
+        }
+
+        .intro-text {
+            font-size: 1.2rem;
+            line-height: 1.9;
+            color: var(--color-text-light);
+        }
+
+        .intro-text strong {
+            color: var(--color-text);
+        }
+
+        /* Story Cards with Animation */
+        .story-card {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+            padding: 5rem 0;
+            border-bottom: 1px solid var(--color-border);
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .story-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .story-card:nth-child(even) {
+            direction: rtl;
+        }
+
+        .story-card:nth-child(even) > * {
+            direction: ltr;
+        }
+
+        .story-card__image {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            aspect-ratio: 4/3;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+        }
+
+        .story-card__image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .story-card:hover .story-card__image img {
+            transform: scale(1.05);
+        }
+
+        .story-card__image::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(184, 52, 59, 0.15) 0%, transparent 50%);
+        }
+
+        .story-card__content {
+            padding: 1rem 0;
+        }
+
+        .story-card__number {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--color-accent);
+            line-height: 1;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+
+        .story-card__title {
+            font-family: var(--font-display);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.25rem;
+            line-height: 1.3;
+        }
+
+        .story-card__text {
+            font-size: 1.05rem;
+            color: var(--color-text-light);
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .story-card__text strong {
+            color: var(--color-text);
+            font-weight: 600;
+        }
+
+        .story-card__takeaway {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-style: italic;
+            color: var(--color-accent);
+            padding-left: 1rem;
+            border-left: 3px solid var(--color-accent);
+        }
+
+        .citation {
+            color: var(--color-accent);
+            cursor: pointer;
+            font-size: 0.75em;
+            vertical-align: super;
+            font-weight: 600;
+            font-family: var(--font-ui);
+        }
+
+        .citation:hover {
+            text-decoration: underline;
+        }
+
+        /* Chart Cards */
+        .chart-card {
+            background: var(--color-bg-alt);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin: 3rem auto;
+            max-width: 700px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.06);
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        .chart-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .chart-card__header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .chart-card__title {
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .chart-card__subtitle {
+            font-family: var(--font-ui);
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+        }
+
+        .chart-legend {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: var(--font-ui);
+            font-size: 0.85rem;
+            color: var(--color-text-light);
+        }
+
+        .legend-color {
+            width: 14px;
+            height: 14px;
+            border-radius: 4px;
+        }
+
+        .chart-area {
+            width: 100%;
+            min-height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chart-card__source {
+            font-family: var(--font-ui);
+            text-align: center;
+            font-size: 0.75rem;
+            color: var(--color-text-muted);
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--color-border);
+        }
+
+        /* SVG Styles */
+        .axis path, .axis line { stroke: var(--color-border); }
+        .axis text { font-family: var(--font-ui); fill: var(--color-text-muted); font-size: 11px; }
+        .grid line { stroke: var(--color-border); stroke-opacity: 0.6; }
+        .grid path { stroke-width: 0; }
+        .bar { transition: opacity 0.2s ease; cursor: pointer; }
+        .bar:hover { opacity: 0.75; }
+        .bar-label { font-family: var(--font-ui); font-size: 12px; font-weight: 600; fill: var(--color-text); }
+
+        /* Quote Section */
+        .quote-section {
+            padding: 5rem 2rem;
+            text-align: center;
+            background: var(--color-bg-alt);
+            border-top: 1px solid var(--color-border);
+            border-bottom: 1px solid var(--color-border);
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+
+        .quote-text {
+            font-family: var(--font-display);
+            font-size: clamp(1.4rem, 3vw, 1.8rem);
+            font-style: italic;
+            font-weight: 400;
+            line-height: 1.5;
+            max-width: 800px;
+            margin: 0 auto 1.5rem;
+            color: var(--color-text);
+            position: relative;
+            z-index: 1;
+        }
+
+        .quote-author {
+            font-family: var(--font-ui);
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+        }
+
+        .quote-author strong {
+            color: var(--color-accent);
+        }
+
+        /* Visual Break */
+        .visual-break {
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            padding: 5rem 2rem;
+        }
+
+        .visual-card {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.15);
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .visual-card img {
+            width: 100%;
+            max-height: 450px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .visual-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.7) 100%);
+        }
+
+        .visual-caption {
+            position: absolute;
+            left: 2rem;
+            right: 2rem;
+            bottom: 1.5rem;
+            color: #fff;
+            font-family: var(--font-ui);
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .visual-caption small {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.8rem;
+        }
+
+        /* Conclusions */
+        .conclusions {
+            padding: 6rem 2rem;
+            background: linear-gradient(180deg, var(--color-bg-alt) 0%, var(--color-bg) 100%);
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+        }
+
+        .conclusions-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .conclusions-title {
+            font-family: var(--font-display);
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .conclusions-subtitle {
+            font-family: var(--font-body);
+            font-size: 1.1rem;
+            color: var(--color-text-light);
+            font-style: italic;
+            max-width: 650px;
+            margin: 0 auto;
+        }
+
+        .findings-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            max-width: 900px;
+            margin: 0 auto 4rem;
+        }
+
+        @media (max-width: 700px) {
+            .findings-grid { grid-template-columns: 1fr; }
+        }
+
+        .finding-card {
+            background: var(--color-bg-alt);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--color-border);
+            display: flex;
+            align-items: flex-start;
+            gap: 1.25rem;
+            transition: transform 0.6s ease, box-shadow 0.3s ease, opacity 0.6s ease;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .finding-card.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .finding-card.visible:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        }
+
+        .finding-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--color-accent), #D4555C);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .finding-icon i {
+            font-size: 1.2rem;
+            color: white;
+        }
+
+        .finding-content {
+            flex: 1;
+        }
+
+        .finding-title {
+            font-family: var(--font-display);
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .finding-text {
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            color: var(--color-text-light);
+            line-height: 1.6;
+        }
+
+        .conclusions-text {
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+            line-height: 1.9;
+            color: var(--color-text-light);
+            text-align: center;
+        }
+
+        /* Conclusion Prose */
+        .conclusion-prose {
+            max-width: 750px;
+            margin: 3rem auto 0;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .conclusion-prose.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .conclusion-prose p {
+            font-size: 1.05rem;
+            line-height: 1.9;
+            color: var(--color-text-light);
+            margin-bottom: 1.5rem;
+            text-align: justify;
+        }
+
+        .conclusion-prose p em {
+            font-style: italic;
+            color: var(--color-text);
+        }
+
+        .conclusion-final-text {
+            font-family: var(--font-display);
+            font-size: 1.15rem !important;
+            font-style: italic;
+            text-align: center !important;
+            color: var(--color-text) !important;
+            padding: 2rem;
+            margin-top: 2rem;
+            background: var(--color-accent-light);
+            border-radius: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .conclusion-prose p {
+                text-align: left;
+            }
+        }
+
+        /* Context Section - External Sources */
+        .context-section {
+            padding: 5rem 2rem;
+            background: var(--color-bg);
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .context-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .context-title {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--color-text);
+        }
+
+        .context-title i {
+            color: var(--color-accent);
+            margin-right: 0.5rem;
+        }
+
+        .context-subtitle {
+            font-family: var(--font-ui);
+            font-size: 1rem;
+            color: var(--color-text-muted);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .context-content {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .context-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .context-disclaimer {
+            background: rgba(184, 52, 59, 0.08);
+            border-left: 4px solid var(--color-accent);
+            padding: 1rem 1.5rem;
+            margin-bottom: 2rem;
+            border-radius: 0 8px 8px 0;
+            font-size: 0.95rem;
+            color: var(--color-text-light);
+        }
+
+        .context-disclaimer i {
+            color: var(--color-accent);
+            margin-right: 0.5rem;
+        }
+
+        .context-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .context-card {
+            background: var(--color-bg-alt);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--color-border);
+        }
+
+        .context-card h4 {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            color: var(--color-text);
+        }
+
+        .context-card h4 i {
+            color: var(--color-accent);
+            margin-right: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .context-card p {
+            font-size: 0.95rem;
+            line-height: 1.7;
+            color: var(--color-text-light);
+        }
+
+        .context-conclusion {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: var(--color-text);
+            text-align: center;
+            padding: 1.5rem;
+            background: var(--color-bg-alt);
+            border-radius: 12px;
+            font-style: italic;
+        }
+
+        @media (max-width: 700px) {
+            .context-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* References */
+        .references {
+            padding: 4rem 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .references__title {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .references__title i {
+            color: var(--color-accent);
+        }
+
+        .reference-item {
+            font-family: var(--font-ui);
+            font-size: 0.9rem;
+            color: var(--color-text-light);
+            margin-bottom: 1rem;
+            padding-left: 2rem;
+            text-indent: -2rem;
+            line-height: 1.6;
+        }
+
+        .reference-item a {
+            color: var(--color-accent);
+            text-decoration: none;
+            word-break: break-all;
+        }
+
+        .reference-item a:hover {
+            text-decoration: underline;
+        }
+
+        /* Footer */
+        footer {
+            padding: 4rem 2rem;
+            text-align: center;
+            background: var(--color-bg-alt);
+            border-top: 1px solid var(--color-border);
+        }
+
+        .footer-author {
+            font-family: var(--font-display);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-info {
+            font-family: var(--font-ui);
+            font-size: 0.9rem;
+            color: var(--color-text-muted);
+            margin-bottom: 2rem;
+        }
+
+        .footer-info a {
+            color: var(--color-accent);
+            text-decoration: none;
+        }
+
+        .footer-info a:hover {
+            text-decoration: underline;
+        }
+
+        .footer-tech {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .tech-badge {
+            background: var(--color-bg);
+            border: 1px solid var(--color-border);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-family: var(--font-ui);
+            font-size: 0.8rem;
+            color: var(--color-text-muted);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .tech-badge i {
+            color: var(--color-accent);
+        }
+
+        .footer-license {
+            margin-top: 1.5rem;
+            font-family: var(--font-ui);
+            font-size: 0.85rem;
+            color: var(--color-text-muted);
+        }
+
+        .footer-license a {
+            color: var(--color-accent);
+            text-decoration: none;
+        }
+
+        .footer-license a:hover {
+            text-decoration: underline;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: fixed;
+            background: var(--color-bg-alt);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-family: var(--font-ui);
+            font-size: 0.9rem;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .tooltip.active { opacity: 1; }
+        .tooltip-title { font-weight: 600; margin-bottom: 4px; }
+        .tooltip-value { color: var(--color-accent); font-weight: 700; font-size: 1.1rem; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .story-card {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            .story-card:nth-child(even) {
+                direction: ltr;
+            }
+            .story-card__number {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sección Hero -->
+    <section class="hero">
+        <canvas id="hero-canvas"></canvas>
+        
+        <div class="hero-content">
+            <p class="hero-label"><i class="fas fa-chart-line"></i> Data Storytelling · Visualización de Datos</p>
+            <h1 class="hero-title">Más allá de Harvard</h1>
+            <p class="hero-subtitle">Lo que las películas no muestran del sistema universitario estadounidense</p>
+            
+            <div class="hero-stats">
+                <div class="hero-stat">
+                    <span class="hero-stat-number">$1.8B</span>
+                    <span class="hero-stat-label">Deuda Total</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">45M</span>
+                    <span class="hero-stat-label">Afectados</span>
+                </div>
+                <div class="hero-stat">
+                    <span class="hero-stat-number">6,429</span>
+                    <span class="hero-stat-label">Instituciones</span>
+                </div>
+            </div>
+            
+            <p class="hero-byline"><i class="fas fa-user-graduate"></i></p>
+        </div>
+        
+        <div class="scroll-indicator">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </section>
+
+    <!-- Introducción -->
+    <section class="intro">
+        <i class="fas fa-university intro-icon"></i>
+        <p class="intro-text">
+            Hollywood nos vende un sueño: campus verdes, fraternidades, el camino al éxito. 
+            Pero detrás de esa imagen hay <strong>$1.8 billones en deuda estudiantil</strong> que afectan a 
+            <strong>45 millones de estadounidenses</strong> (Education Data Initiative, 2025)<sup class="citation" data-ref="1">[1]</sup>. 
+            Como advirtió Paulo Freire, la educación puede ser herramienta de liberación o de opresión<sup class="citation" data-ref="2">[2]</sup>. 
+            Analizamos los datos de <strong>6,429 instituciones</strong> para descubrir cuál de las dos funciones 
+            cumple el sistema universitario estadounidense.
+        </p>
+    </section>
+
+    <!-- Contenido principal -->
+    <div class="content">
+        
+        <!-- Tarjeta 1: Costo -->
+        <article class="story-card" data-animate>
+            <div class="story-card__image">
+                <img src="https://images.unsplash.com/photo-1562774053-701939374585?w=800&q=80" alt="Campus universitario con estudiantes">
+            </div>
+            <div class="story-card__content">
+                <span class="story-card__number">1</span>
+                <h2 class="story-card__title">¿La educación como negocio?</h2>
+                <p class="story-card__text">
+                    El sistema se divide en tres tipos: <strong>públicas</strong>, <strong>privadas sin fines de lucro</strong> (como Harvard o Yale) y <strong>privadas con fines de lucro</strong>. Las privadas sin lucro cuestan en promedio <strong>$44,773/año</strong>, casi 2.5 veces más que las públicas (Council on Foreign Relations, 2024)<sup class="citation" data-ref="3">[3]</sup>.
+                </p>
+                <p class="story-card__takeaway">El precio no siempre refleja la calidad</p>
+            </div>
+        </article>
+
+        <!-- Gráfico 1: Costo -->
+        <div class="chart-card" data-animate>
+            <div class="chart-card__header">
+                <h3 class="chart-card__title">Costo anual por tipo de institución</h3>
+                <p class="chart-card__subtitle">Promedio en dólares estadounidenses</p>
+            </div>
+            <div class="chart-area" id="chart-cost"></div>
+            <p class="chart-card__source">Fuente: U.S. Department of Education, College Scorecard (noviembre 2025)</p>
+        </div>
+
+        <!-- Tarjeta 2: Retorno -->
+        <article class="story-card" data-animate>
+            <div class="story-card__image">
+                <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&q=80" alt="Calculadora y documentos financieros">
+            </div>
+            <div class="story-card__content">
+                <span class="story-card__number">2</span>
+                <h2 class="story-card__title">El retorno de la inversión</h2>
+                <p class="story-card__text">
+                    Las <strong>universidades públicas</strong> ofrecen el mejor retorno: <strong>5.4x</strong>. Por cada dólar de deuda, los graduados ganan $5.40 en ingresos a 10 años. Las privadas con lucro apenas alcanzan 3.7x (Sharkey & Beabout, 2016)<sup class="citation" data-ref="4">[4]</sup>.
+                </p>
+                <p class="story-card__takeaway">Pagar más no garantiza ganar más</p>
+            </div>
+        </article>
+
+        <!-- Gráfico 2: Retorno -->
+        <div class="chart-card" data-animate>
+            <div class="chart-card__header">
+                <h3 class="chart-card__title">Retorno de inversión educativa</h3>
+                <p class="chart-card__subtitle">Ingresos a 10 años / Deuda mediana</p>
+            </div>
+            <div class="chart-area" id="chart-return"></div>
+            <p class="chart-card__source">Fuente: U.S. Department of Education, College Scorecard (noviembre 2025)</p>
+        </div>
+
+        <!-- Cita 1 -->
+        <section class="quote-section">
+            <p class="quote-text">Las universidades han pasado a funcionar como proveedoras de credenciales en mercados altamente competitivos.</p>
+            <p class="quote-author">— <strong>Steven Mintz</strong>, Inside Higher Ed (2023)<sup class="citation" data-ref="5">[5]</sup></p>
+        </section>
+
+        <!-- Separador visual 1 -->
+        <section class="visual-break">
+            <div class="visual-card">
+                <img src="https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?w=1400&q=80" alt="Estudiantes en biblioteca universitaria">
+                <div class="visual-overlay"></div>
+                <div class="visual-caption">
+                    <span>El costo no termina con la matrícula: la deuda se convierte en un compañero de vida.</span>
+                    <small>Foto: Unsplash</small>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tarjeta 3: Género -->
+        <article class="story-card" data-animate>
+            <div class="story-card__image">
+                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=80" alt="Mujer profesional en oficina">
+            </div>
+            <div class="story-card__content">
+                <span class="story-card__number">3</span>
+                <h2 class="story-card__title">La deuda tiene género</h2>
+                <p class="story-card__text">
+                    Las <strong>mujeres</strong> poseen casi dos tercios de la deuda estudiantil del país: <strong>$929 mil millones</strong> (AAUW, 2025)<sup class="citation" data-ref="6">[6]</sup>. Los hombres tienen más probabilidades de recibir apoyo financiero de sus familias<sup class="citation" data-ref="11">[11]</sup>, mientras que las mujeres dependen más de préstamos. Esta brecha de género crece <strong>1.2% cada año</strong> después de la graduación, según el estudio longitudinal de Addo & Zhang (2024)<sup class="citation" data-ref="7">[7]</sup>.
+                </p>
+                <p class="story-card__takeaway">Una trampa doble: más deuda, menos salario</p>
+            </div>
+        </article>
+
+        <!-- Gráfico 3: Género -->
+        <div class="chart-card" data-animate>
+            <div class="chart-card__header">
+                <h3 class="chart-card__title">Brecha de deuda por género</h3>
+                <p class="chart-card__subtitle">Deuda mediana en dólares - la línea muestra la diferencia</p>
+            </div>
+            <div class="chart-area" id="chart-gender"></div>
+            <p class="chart-card__source">Fuente: U.S. Department of Education, College Scorecard (noviembre 2025)</p>
+        </div>
+
+        <!-- Cita 2 -->
+        <section class="quote-section">
+            <p class="quote-text">Solo 4 de cada 10 estudiantes afrodescendientes que inician la universidad obtienen su título en 6 años.</p>
+            <p class="quote-author">— <strong>Education Trust</strong> (2024)<sup class="citation" data-ref="8">[8]</sup></p>
+        </section>
+
+        <!-- Tarjeta 4: Raza -->
+        <article class="story-card" data-animate>
+            <div class="story-card__image">
+                <img src="https://images.unsplash.com/photo-1529390079861-591de354faf5?w=800&q=80" alt="Grupo diverso de estudiantes universitarios">
+            </div>
+            <div class="story-card__content">
+                <span class="story-card__number">4</span>
+                <h2 class="story-card__title">El peso del origen</h2>
+                <p class="story-card__text">
+                    Los estudiantes afrodescendientes se gradúan <strong>15 puntos porcentuales</strong> por debajo de sus pares blancos en las privadas sin lucro (American Council on Education, 2024)<sup class="citation" data-ref="9">[9]</sup>. Los hispanos, el grupo de mayor crecimiento en educación superior según el NCES<sup class="citation" data-ref="10">[10]</sup>, se ubican en un punto intermedio: 7-10 puntos por debajo de los blancos en todas las categorías institucionales.
+                </p>
+                <p class="story-card__takeaway">Pagar más no elimina la desigualdad</p>
+            </div>
+        </article>
+
+        <!-- Gráfico 4: Raza -->
+        <div class="chart-card" data-animate>
+            <div class="chart-card__header">
+                <h3 class="chart-card__title">Tasa de graduación por grupo racial</h3>
+                <p class="chart-card__subtitle">Porcentaje a 6 años por tipo de institución</p>
+            </div>
+            <div class="chart-legend">
+                <div class="legend-item"><span class="legend-color" style="background: #5C6B73;"></span> Blancos</div>
+                <div class="legend-item"><span class="legend-color" style="background: #2D3436;"></span> Afrodescendientes</div>
+                <div class="legend-item"><span class="legend-color" style="background: #D4812A;"></span> Hispanos</div>
+            </div>
+            <div class="chart-area" id="chart-race"></div>
+            <p class="chart-card__source">Fuente: U.S. Department of Education, College Scorecard (noviembre 2025)</p>
+        </div>
+
+        <!-- Separador visual 2 -->
+        <section class="visual-break">
+            <div class="visual-card">
+                <img src="https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=1400&q=80" alt="Estudiantes celebrando graduación">
+                <div class="visual-overlay"></div>
+                <div class="visual-caption">
+                    <span>Graduarse es un logro. Pero las probabilidades dependen del punto de partida.</span>
+                    <small>Foto: Unsplash</small>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conclusiones -->
+        <section class="conclusions" id="conclusiones">
+            <div class="conclusions-header">
+                <h2 class="conclusions-title">¿Qué revelan los datos?</h2>
+                <p class="conclusions-subtitle">Hallazgos del análisis de 6,429 instituciones del College Scorecard</p>
+            </div>
+
+            <div class="findings-grid">
+                <div class="finding-card" data-animate data-delay="0">
+                    <div class="finding-icon"><i class="fas fa-hand-holding-usd"></i></div>
+                    <div class="finding-content">
+                        <h3 class="finding-title">Las públicas ofrecen mejor valor</h3>
+                        <p class="finding-text">Retorno de 5.4x versus 3.7x de las privadas con lucro.</p>
+                    </div>
+                </div>
+                <div class="finding-card" data-animate data-delay="100">
+                    <div class="finding-icon"><i class="fas fa-venus"></i></div>
+                    <div class="finding-content">
+                        <h3 class="finding-title">Las mujeres cargan más deuda</h3>
+                        <p class="finding-text">En todos los tipos de institución, la deuda mediana femenina supera a la masculina.</p>
+                    </div>
+                </div>
+                <div class="finding-card" data-animate data-delay="200">
+                    <div class="finding-icon"><i class="fas fa-chart-pie"></i></div>
+                    <div class="finding-content">
+                        <h3 class="finding-title">La brecha racial persiste</h3>
+                        <p class="finding-text">15 puntos separan la graduación de blancos y afrodescendientes.</p>
+                    </div>
+                </div>
+                <div class="finding-card" data-animate data-delay="300">
+                    <div class="finding-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    <div class="finding-content">
+                        <h3 class="finding-title">El precio no garantiza equidad</h3>
+                        <p class="finding-text">Las brechas raciales son mayores en las privadas que en las públicas.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="conclusion-prose" data-animate>
+                <p>
+                    Bourdieu y Passeron (1977) argumentaron que la educación reproduce la desigualdad al recompensar el <em>capital cultural</em> heredado<sup class="citation" data-ref="12">[12]</sup>. Bowles y Gintis (1976) fueron más explícitos: el sistema educativo no corrige las jerarquías del capitalismo, las legitima<sup class="citation" data-ref="15">[15]</sup>. Los datos del College Scorecard —analizando costo, retorno, género y raza por separado— confirman estas dinámicas de reproducción.
+                </p>
+                <p class="conclusion-final-text">
+                    Más allá de Harvard, de las películas y de los rankings, los datos cuentan una historia diferente: la de un sistema que promete movilidad social mientras reproduce las desigualdades que dice combatir.
+                </p>
+            </div>
+        </section>
+
+        <!-- Contexto: La evidencia más amplia -->
+        <section class="context-section" id="contexto">
+            <div class="context-header">
+                <h2 class="context-title"><i class="fas fa-globe"></i> La evidencia más amplia</h2>
+                <p class="context-subtitle">Datos de fuentes externas que iluminan las interseccionalidades no capturadas en el College Scorecard</p>
+            </div>
+
+            <div class="context-content" data-animate>
+                <p class="context-disclaimer">
+                    <i class="fas fa-info-circle"></i> Los siguientes datos provienen de estudios longitudinales del NCES, Education Data Initiative y otras fuentes que rastrean a los estudiantes años después de su graduación, permitiendo analizar intersecciones de raza y género que el College Scorecard no incluye.
+                </p>
+
+                <div class="context-grid">
+                    <div class="context-card">
+                        <h4><i class="fas fa-clock"></i> Tiempo de repago</h4>
+                        <p>El promedio es de <strong>10 a 25 años</strong>. Solo el 40% logra saldar su deuda en una década<sup class="citation" data-ref="13">[13]</sup>.</p>
+                    </div>
+                    
+                    <div class="context-card">
+                        <h4><i class="fas fa-venus-mars"></i> Intersección género × raza</h4>
+                        <p>12 años después de graduarse: <strong>hombres blancos</strong> deben 56% de su préstamo inicial; <strong>mujeres blancas</strong> deben 72%; <strong>mujeres afrodescendientes</strong> deben 113%<sup class="citation" data-ref="11">[11]</sup>.</p>
+                    </div>
+                    
+                    <div class="context-card">
+                        <h4><i class="fas fa-chart-line"></i> Trayectorias divergentes</h4>
+                        <p>4 años post-graduación: estudiantes <strong>afrodescendientes</strong> deben 105% de su préstamo inicial; <strong>blancos</strong> redujeron al 78%<sup class="citation" data-ref="14">[14]</sup>.</p>
+                    </div>
+                    
+                    <div class="context-card">
+                        <h4><i class="fas fa-user-graduate"></i> Primera generación</h4>
+                        <p>83% de estudiantes afrodescendientes son primera generación universitaria. Solo 21% de ellos completa un título<sup class="citation" data-ref="16">[16]</sup>.</p>
+                    </div>
+                </div>
+
+                <p class="context-conclusion">
+                    Estas cifras revelan que las desigualdades observadas en el College Scorecard —género y raza por separado— se <strong>amplifican cuando se intersectan</strong>. La deuda no es solo un número: es tiempo de vida que pesa distinto según el cuerpo que lo carga.
+                </p>
+            </div>
+        </section>
+
+        <!-- Referencias bibliográficas -->
+        <section class="references" id="referencias">
+            <h2 class="references__title"><i class="fas fa-book"></i> Referencias</h2>
+            
+            <p class="reference-item" id="ref-1">[1] Education Data Initiative. (2025, 9 de julio). <em>Student loan debt crisis: Facts, causes & effects</em>. <a href="https://educationdata.org/student-loan-debt-crisis" target="_blank">https://educationdata.org/student-loan-debt-crisis</a></p>
+            
+            <p class="reference-item" id="ref-2">[2] Freire, P. (1970). <em>Pedagogía del oprimido</em>. Siglo XXI Editores.</p>
+            
+            <p class="reference-item" id="ref-3">[3] Council on Foreign Relations. (2024, 16 de abril). <em>What should the U.S. do about rising student loan debt?</em> <a href="https://www.cfr.org/backgrounder/us-student-loan-debt-trends-economic-impact" target="_blank">https://www.cfr.org/backgrounder/us-student-loan-debt-trends-economic-impact</a></p>
+            
+            <p class="reference-item" id="ref-4">[4] Sharkey, T., & Beabout, B. (2016). The conflict of commodification of traditional higher education institutions. <em>Journal of Academic Administration in Higher Education, 12</em>(1), 19-30. <a href="https://files.eric.ed.gov/fulltext/EJ1101248.pdf" target="_blank">https://files.eric.ed.gov/fulltext/EJ1101248.pdf</a></p>
+            
+            <p class="reference-item" id="ref-5">[5] Mintz, S. (2023, 7 de agosto). <em>Combating the commodification of higher education</em>. Inside Higher Ed. <a href="https://www.insidehighered.com/blogs/higher-ed-gamma/combating-commodification-higher-education" target="_blank">https://www.insidehighered.com/blogs/higher-ed-gamma/combating-commodification-higher-education</a></p>
+            
+            <p class="reference-item" id="ref-6">[6] American Association of University Women. (2025). <em>Women & student debt</em>. <a href="https://www.aauw.org/issues/education/student-debt/" target="_blank">https://www.aauw.org/issues/education/student-debt/</a></p>
+            
+            <p class="reference-item" id="ref-7">[7] Addo, F. R., & Zhang, X. (2024). Gender stratification, racial disparities, and student debt trajectories in the United States. <em>Social Science Research</em>. <a href="https://doi.org/10.1016/j.rssm.2024.100929" target="_blank">https://doi.org/10.1016/j.rssm.2024.100929</a></p>
+            
+            <p class="reference-item" id="ref-8">[8] Education Trust. (2024). <em>A look at Black student success: Identifying top- and bottom-performing institutions</em>. <a href="https://edtrust.org/rti/blackstudentsuccess/" target="_blank">https://edtrust.org/rti/blackstudentsuccess/</a></p>
+            
+            <p class="reference-item" id="ref-9">[9] American Council on Education. (2024). <em>Race and ethnicity in higher education: 2024 status report</em>. <a href="https://www.equityinhighered.org/" target="_blank">https://www.equityinhighered.org/</a></p>
+            
+            <p class="reference-item" id="ref-10">[10] National Center for Education Statistics. (2024). <em>Postsecondary graduation rates</em> (Indicator 23). <a href="https://nces.ed.gov/programs/raceindicators/indicator_red.asp" target="_blank">https://nces.ed.gov/programs/raceindicators/indicator_red.asp</a></p>
+            
+            <p class="reference-item" id="ref-11">[11] Education Data Initiative. (2025, 22 de febrero). <em>Student loan debt by gender</em>. <a href="https://educationdata.org/student-loan-debt-by-gender" target="_blank">https://educationdata.org/student-loan-debt-by-gender</a></p>
+            
+            <p class="reference-item" id="ref-12">[12] Bourdieu, P., & Passeron, J. C. (1977). <em>Reproduction in Education, Society and Culture</em>. Sage Publications.</p>
+            
+            <p class="reference-item" id="ref-13">[13] BestColleges. (2025). <em>Average Student Loan Pay Off Time: Statistics and Examples</em> <a href="https://www.bestcolleges.com/research/how-long-to-pay-off-student-loans/" target="_blank">https://www.bestcolleges.com/research/how-long-to-pay-off-student-loans/</a></p>
+            
+            <p class="reference-item" id="ref-14">[14] National Center for Education Statistics. (2020). <em>Debt after college: Employment, enrollment, and student-reported stress and outcomes</em>. U.S. Department of Education. <a href="https://nces.ed.gov/use-work/resource-library/data/tables/debt-after-college-employment-enrollment-and-student-reported-stress-and-outcomes" target="_blank">https://nces.ed.gov/use-work/resource-library/data/tables/debt-after-college-employment-enrollment-and-student-reported-stress-and-outcomes</a></p>
+            
+            <p class="reference-item" id="ref-15">[15] Bowles, S., & Gintis, H. (1976). <em>Schooling in Capitalist America: Educational Reform and the Contradictions of Economic Life</em>. Basic Books.</p>
+            
+            <p class="reference-item" id="ref-16">[16] The Pew Charitable Trusts. (2024). <em>The student loan default divide: Racial inequities play a role</em>. <a href="https://www.pewtrusts.org/en/research-and-analysis/reports/2024/12/the-student-loan-default-divide-racial-inequities-play-a-role" target="_blank">https://www.pewtrusts.org/en/research-and-analysis/reports/2024/12/the-student-loan-default-divide-racial-inequities-play-a-role</a></p>
+        </section>
+    </div>
+
+    <!-- Pie de página -->
+    <footer>
+        <p class="footer-author"><i class="fas fa-user-graduate"></i> Gabriela Alejandra Perez</p>
+        <p class="footer-info">
+            Visualización de Datos · Máster en Ciencia de Datos · UOC · Enero 2026<br><br>
+            Datos: <a href="https://collegescorecard.ed.gov/" target="_blank">U.S. Department of Education College Scorecard</a><br>
+            Imágenes: <a href="https://unsplash.com" target="_blank">Unsplash</a>
+        </p>
+        <div class="footer-tech">
+            <span class="tech-badge"><i class="fab fa-js"></i> D3.js</span>
+            <span class="tech-badge"><i class="fab fa-r-project"></i> R Studio</span>
+            <span class="tech-badge"><i class="fab fa-html5"></i> HTML5/CSS3</span>
+            <span class="tech-badge"><i class="fab fa-github"></i> GitHub</span>
+        </div>
+        <p class="footer-license">
+            <a href="https://github.com/gperezcaviglia/visualizacion_pr2" target="_blank"><i class="fab fa-github"></i> Repositorio</a>
+            · <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank"><i class="fab fa-creative-commons"></i><i class="fab fa-creative-commons-by"></i><i class="fab fa-creative-commons-sa"></i> CC BY-SA 4.0</a>
+        </p>
+    </footer>
+
+    <!-- Tooltip para gráficos -->
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Animación de nodos en el hero (efecto red neuronal)
+        const heroCanvas = document.getElementById('hero-canvas');
+        const heroCtx = heroCanvas.getContext('2d');
+        let heroNodes = [];
+        let heroAnimId;
+
+        function initHeroNetwork() {
+            const hero = document.querySelector('.hero');
+            heroCanvas.width = hero.offsetWidth;
+            heroCanvas.height = hero.offsetHeight;
+            
+            heroNodes = [];
+            const numNodes = Math.floor((heroCanvas.width * heroCanvas.height) / 25000);
+            
+            for (let i = 0; i < numNodes; i++) {
+                heroNodes.push({
+                    x: Math.random() * heroCanvas.width,
+                    y: Math.random() * heroCanvas.height,
+                    vx: (Math.random() - 0.5) * 0.3,
+                    vy: (Math.random() - 0.5) * 0.3,
+                    radius: Math.random() * 2 + 1
+                });
+            }
+        }
+
+        function drawHeroNetwork() {
+            heroCtx.clearRect(0, 0, heroCanvas.width, heroCanvas.height);
+            
+            // Dibujar conexiones entre nodos
+            heroCtx.lineWidth = 1;
+            
+            for (let i = 0; i < heroNodes.length; i++) {
+                for (let j = i + 1; j < heroNodes.length; j++) {
+                    const dx = heroNodes[i].x - heroNodes[j].x;
+                    const dy = heroNodes[i].y - heroNodes[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < 150) {
+                        const alpha = (1 - dist / 150) * 0.35;
+                        heroCtx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+                        heroCtx.beginPath();
+                        heroCtx.moveTo(heroNodes[i].x, heroNodes[i].y);
+                        heroCtx.lineTo(heroNodes[j].x, heroNodes[j].y);
+                        heroCtx.stroke();
+                    }
+                }
+            }
+            
+            // Dibujar nodos
+            heroNodes.forEach(node => {
+                heroCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                heroCtx.beginPath();
+                heroCtx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+                heroCtx.fill();
+                
+                node.x += node.vx;
+                node.y += node.vy;
+                
+                if (node.x < 0 || node.x > heroCanvas.width) node.vx *= -1;
+                if (node.y < 0 || node.y > heroCanvas.height) node.vy *= -1;
+            });
+            
+            heroAnimId = requestAnimationFrame(drawHeroNetwork);
+        }
+
+        // Datos para los gráficos
+        const data = {
+            byControl: [
+                { control: "Pública", cost: 18076, return: 5.41, color: "#2E86AB" },
+                { control: "Privada sin lucro", cost: 44773, return: 3.70, color: "#7B2D8E" },
+                { control: "Privada con lucro", cost: 30843, return: 3.75, color: "#E07A2F" }
+            ],
+            genderDebt: [
+                { control: "Pública", female: 10431, male: 9509, gap: 9.7 },
+                { control: "Privada sin lucro", female: 16551, male: 15235, gap: 8.6 },
+                { control: "Privada con lucro", female: 10079, male: 10043, gap: 0.4 }
+            ],
+            racialGrad: [
+                { control: "Pública", white: 50.0, black: 36.5, hispanic: 42.8 },
+                { control: "Privada sin lucro", white: 60.3, black: 44.9, hispanic: 51.4 },
+                { control: "Privada con lucro", white: 50.8, black: 37.4, hispanic: 49.8 }
+            ]
+        };
+
+        const tooltip = d3.select("#tooltip");
+
+        function showTooltip(event, title, value) {
+            tooltip.classed("active", true)
+                .style("left", (event.clientX + 15) + "px")
+                .style("top", (event.clientY - 10) + "px")
+                .html(`<div class="tooltip-title">${title}</div><div class="tooltip-value">${value}</div>`);
+        }
+
+        function hideTooltip() { tooltip.classed("active", false); }
+
+        // Gráfico 1: Costo por tipo de institución (lollipop)
+        function drawCostChart() {
+            const container = document.getElementById('chart-cost');
+            container.innerHTML = '';
+            const width = 520;
+            const height = 260;
+            const margin = { top: 20, right: 80, bottom: 20, left: 130 };
+
+            const svg = d3.select("#chart-cost").append("svg")
+                .attr("width", width).attr("height", height)
+                .append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const innerWidth = width - margin.left - margin.right;
+            const innerHeight = height - margin.top - margin.bottom;
+
+            const y = d3.scaleBand().domain(data.byControl.map(d => d.control)).range([0, innerHeight]).padding(0.5);
+            const x = d3.scaleLinear().domain([0, 50000]).range([0, innerWidth]);
+
+            // Líneas de cuadrícula
+            svg.append("g").attr("class", "grid")
+                .call(d3.axisBottom(x).tickSize(innerHeight).tickFormat("").ticks(5))
+                .attr("stroke-opacity", 0.1);
+
+            // Líneas verticales (tallos)
+            svg.selectAll(".lollipop-line").data(data.byControl).join("line")
+                .attr("class", "lollipop-line")
+                .attr("x1", 0).attr("x2", 0)
+                .attr("y1", d => y(d.control) + y.bandwidth()/2)
+                .attr("y2", d => y(d.control) + y.bandwidth()/2)
+                .attr("stroke", d => d.color).attr("stroke-width", 3)
+                .transition().duration(1000).ease(d3.easeCubicOut).delay((d, i) => i * 150)
+                .attr("x2", d => x(d.cost));
+
+            // Círculos (puntos)
+            svg.selectAll(".lollipop-dot").data(data.byControl).join("circle")
+                .attr("class", "lollipop-dot")
+                .attr("cx", 0).attr("cy", d => y(d.control) + y.bandwidth()/2)
+                .attr("r", 0).attr("fill", d => d.color)
+                .style("cursor", "pointer")
+                .on("mouseover", (e, d) => showTooltip(e, d.control, `$${d.cost.toLocaleString()}/año`))
+                .on("mouseout", hideTooltip)
+                .transition().duration(1000).ease(d3.easeCubicOut).delay((d, i) => i * 150)
+                .attr("cx", d => x(d.cost)).attr("r", 12);
+
+            // Etiquetas eje Y
+            svg.selectAll(".y-label").data(data.byControl).join("text")
+                .attr("class", "y-label")
+                .attr("x", -10).attr("y", d => y(d.control) + y.bandwidth()/2)
+                .attr("text-anchor", "end").attr("dominant-baseline", "middle")
+                .attr("fill", "var(--color-text-light)").attr("font-size", "12px")
+                .text(d => d.control);
+
+            // Etiquetas de valor
+            svg.selectAll(".value-label").data(data.byControl).join("text")
+                .attr("class", "bar-label")
+                .attr("x", d => x(d.cost) + 18).attr("y", d => y(d.control) + y.bandwidth()/2)
+                .attr("dominant-baseline", "middle").attr("opacity", 0)
+                .text(d => `$${(d.cost/1000).toFixed(0)}k`)
+                .transition().duration(600).delay((d, i) => i * 150 + 700).attr("opacity", 1);
+        }
+
+        // Gráfico 2: Retorno de inversión (dot plot)
+        function drawReturnChart() {
+            const container = document.getElementById('chart-return');
+            container.innerHTML = '';
+            const width = 520;
+            const height = 280;
+            const margin = { top: 30, right: 60, bottom: 40, left: 130 };
+
+            const svg = d3.select("#chart-return").append("svg")
+                .attr("width", width).attr("height", height)
+                .append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const innerWidth = width - margin.left - margin.right;
+            const innerHeight = height - margin.top - margin.bottom;
+
+            const y = d3.scaleBand().domain(data.byControl.map(d => d.control)).range([0, innerHeight]).padding(0.4);
+            const x = d3.scaleLinear().domain([0, 7]).range([0, innerWidth]);
+
+            // Cuadrícula
+            svg.append("g").attr("class", "grid")
+                .call(d3.axisBottom(x).tickSize(innerHeight).tickFormat("").ticks(7))
+                .attr("stroke-opacity", 0.1);
+
+            // Etiquetas eje Y
+            svg.selectAll(".y-label").data(data.byControl).join("text")
+                .attr("x", -10).attr("y", d => y(d.control) + y.bandwidth()/2)
+                .attr("text-anchor", "end").attr("dominant-baseline", "middle")
+                .attr("fill", "var(--color-text-light)").attr("font-size", "12px")
+                .text(d => d.control);
+
+            // Líneas horizontales de guía
+            svg.selectAll(".track").data(data.byControl).join("line")
+                .attr("x1", 0).attr("x2", innerWidth)
+                .attr("y1", d => y(d.control) + y.bandwidth()/2)
+                .attr("y2", d => y(d.control) + y.bandwidth()/2)
+                .attr("stroke", "#e0e0e0").attr("stroke-width", 1);
+
+            // Puntos
+            svg.selectAll(".dot").data(data.byControl).join("circle")
+                .attr("cx", 0).attr("cy", d => y(d.control) + y.bandwidth()/2)
+                .attr("r", 0).attr("fill", d => d.color)
+                .style("cursor", "pointer")
+                .on("mouseover", (e, d) => showTooltip(e, d.control, `${d.return}x retorno por cada $1 de deuda`))
+                .on("mouseout", hideTooltip)
+                .transition().duration(1200).ease(d3.easeElasticOut.amplitude(1).period(0.5))
+                .delay((d, i) => i * 200)
+                .attr("cx", d => x(d.return)).attr("r", 16);
+
+            // Valor dentro del punto
+            svg.selectAll(".dot-label").data(data.byControl).join("text")
+                .attr("x", d => x(d.return)).attr("y", d => y(d.control) + y.bandwidth()/2)
+                .attr("text-anchor", "middle").attr("dominant-baseline", "middle")
+                .attr("fill", "#fff").attr("font-size", "11px").attr("font-weight", "700")
+                .attr("opacity", 0)
+                .text(d => `${d.return}x`)
+                .transition().duration(400).delay((d, i) => i * 200 + 800).attr("opacity", 1);
+
+            // Eje X
+            svg.append("g").attr("class", "axis")
+                .attr("transform", `translate(0,${innerHeight})`)
+                .call(d3.axisBottom(x).ticks(7).tickFormat(d => `${d}x`));
+        }
+
+        // Gráfico 3: Brecha de género en deuda (dumbbell)
+        function drawGenderChart() {
+            const container = document.getElementById('chart-gender');
+            container.innerHTML = '';
+            const width = 540;
+            const height = 280;
+            const margin = { top: 40, right: 60, bottom: 40, left: 130 };
+
+            const svg = d3.select("#chart-gender").append("svg")
+                .attr("width", width).attr("height", height)
+                .append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const innerWidth = width - margin.left - margin.right;
+            const innerHeight = height - margin.top - margin.bottom;
+
+            const y = d3.scaleBand().domain(data.genderDebt.map(d => d.control)).range([0, innerHeight]).padding(0.5);
+            const x = d3.scaleLinear().domain([8000, 18000]).range([0, innerWidth]);
+
+            // Cuadrícula
+            svg.append("g").attr("class", "grid")
+                .call(d3.axisBottom(x).tickSize(innerHeight).tickFormat("").ticks(5))
+                .attr("stroke-opacity", 0.1);
+
+            // Eje X
+            svg.append("g").attr("class", "axis")
+                .attr("transform", `translate(0,${innerHeight})`)
+                .call(d3.axisBottom(x).ticks(5).tickFormat(d => `$${d/1000}k`));
+
+            // Etiquetas eje Y
+            svg.selectAll(".y-label").data(data.genderDebt).join("text")
+                .attr("x", -10).attr("y", d => y(d.control) + y.bandwidth()/2)
+                .attr("text-anchor", "end").attr("dominant-baseline", "middle")
+                .attr("fill", "var(--color-text-light)").attr("font-size", "12px")
+                .text(d => d.control);
+
+            // Líneas conectoras (barra del dumbbell)
+            svg.selectAll(".dumbbell-line").data(data.genderDebt).join("line")
+                .attr("x1", d => x(d.male)).attr("x2", d => x(d.male))
+                .attr("y1", d => y(d.control) + y.bandwidth()/2)
+                .attr("y2", d => y(d.control) + y.bandwidth()/2)
+                .attr("stroke", "#ddd").attr("stroke-width", 4).attr("stroke-linecap", "round")
+                .transition().duration(800).ease(d3.easeCubicOut).delay((d, i) => i * 150)
+                .attr("x2", d => x(d.female));
+
+            // Puntos hombres (azul)
+            svg.selectAll(".dot-male").data(data.genderDebt).join("circle")
+                .attr("cx", d => x(d.male)).attr("cy", d => y(d.control) + y.bandwidth()/2)
+                .attr("r", 0).attr("fill", "#2E86AB")
+                .style("cursor", "pointer")
+                .on("mouseover", (e, d) => showTooltip(e, `${d.control} - Hombres`, `$${d.male.toLocaleString()}`))
+                .on("mouseout", hideTooltip)
+                .transition().duration(600).ease(d3.easeCubicOut).delay((d, i) => i * 150 + 400)
+                .attr("r", 10);
+
+            // Puntos mujeres (rojo)
+            svg.selectAll(".dot-female").data(data.genderDebt).join("circle")
+                .attr("cx", d => x(d.female)).attr("cy", d => y(d.control) + y.bandwidth()/2)
+                .attr("r", 0).attr("fill", "#B8343B")
+                .style("cursor", "pointer")
+                .on("mouseover", (e, d) => showTooltip(e, `${d.control} - Mujeres`, `$${d.female.toLocaleString()} (${d.gap}% más)`))
+                .on("mouseout", hideTooltip)
+                .transition().duration(600).ease(d3.easeCubicOut).delay((d, i) => i * 150 + 600)
+                .attr("r", 10);
+
+            // Etiquetas de brecha
+            svg.selectAll(".gap-label").data(data.genderDebt).join("text")
+                .attr("x", d => x(d.female) + 15).attr("y", d => y(d.control) + y.bandwidth()/2)
+                .attr("dominant-baseline", "middle").attr("font-size", "11px")
+                .attr("fill", "#B8343B").attr("font-weight", "700").attr("opacity", 0)
+                .text(d => `${Math.abs(d.gap)}%`)
+                .transition().duration(400).delay((d, i) => i * 150 + 900).attr("opacity", 1);
+
+            // Leyenda superior
+            const legend = svg.append("g").attr("transform", "translate(0, -25)");
+            legend.append("circle").attr("cx", innerWidth - 120).attr("cy", 0).attr("r", 6).attr("fill", "#2E86AB");
+            legend.append("text").attr("x", innerWidth - 108).attr("y", 0).attr("dominant-baseline", "middle")
+                .attr("font-size", "11px").attr("fill", "var(--color-text-muted)").text("Hombres");
+            legend.append("circle").attr("cx", innerWidth - 50).attr("cy", 0).attr("r", 6).attr("fill", "#B8343B");
+            legend.append("text").attr("x", innerWidth - 38).attr("y", 0).attr("dominant-baseline", "middle")
+                .attr("font-size", "11px").attr("fill", "var(--color-text-muted)").text("Mujeres");
+        }
+
+        // Gráfico 4: Graduación por raza (barras agrupadas)
+        function drawRaceChart() {
+            const container = document.getElementById('chart-race');
+            container.innerHTML = '';
+            const width = 560;
+            const height = 320;
+            const margin = { top: 30, right: 40, bottom: 60, left: 70 };
+
+            const svg = d3.select("#chart-race").append("svg")
+                .attr("width", width).attr("height", height)
+                .append("g").attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const innerWidth = width - margin.left - margin.right;
+            const innerHeight = height - margin.top - margin.bottom;
+
+            const races = ["white", "black", "hispanic"];
+            const raceColors = { white: "#5C6B73", black: "#2D3436", hispanic: "#D4812A" };
+            const raceLabels = { white: "Blancos", black: "Afrodescendientes", hispanic: "Hispanos" };
+
+            const x0 = d3.scaleBand().domain(data.racialGrad.map(d => d.control)).range([0, innerWidth]).padding(0.25);
+            const x1 = d3.scaleBand().domain(races).range([0, x0.bandwidth()]).padding(0.08);
+            const y = d3.scaleLinear().domain([0, 75]).range([innerHeight, 0]);
+
+            // Cuadrícula
+            svg.append("g").attr("class", "grid")
+                .call(d3.axisLeft(y).tickSize(-innerWidth).tickFormat("").ticks(5))
+                .attr("stroke-opacity", 0.15);
+
+            // Eje X
+            svg.append("g").attr("class", "axis")
+                .attr("transform", `translate(0,${innerHeight})`)
+                .call(d3.axisBottom(x0).tickFormat(d => d.replace("Privada ", "Priv. ")));
+
+            // Eje Y
+            svg.append("g").attr("class", "axis")
+                .call(d3.axisLeft(y).ticks(5).tickFormat(d => `${d}%`));
+
+            // Grupos por tipo de institución
+            const groups = svg.selectAll(".group").data(data.racialGrad).join("g")
+                .attr("class", "group")
+                .attr("transform", d => `translate(${x0(d.control)},0)`);
+
+            // Barras para cada grupo racial
+            races.forEach((race, i) => {
+                groups.append("rect")
+                    .attr("class", "bar")
+                    .attr("x", x1(race))
+                    .attr("width", x1.bandwidth())
+                    .attr("y", innerHeight)
+                    .attr("height", 0)
+                    .attr("fill", raceColors[race])
+                    .attr("rx", 4)
+                    .style("cursor", "pointer")
+                    .on("mouseover", (e, d) => showTooltip(e, `${d.control} - ${raceLabels[race]}`, `${d[race]}% graduación`))
+                    .on("mouseout", hideTooltip)
+                    .transition()
+                    .duration(800)
+                    .ease(d3.easeCubicOut)
+                    .delay(i * 100)
+                    .attr("y", d => y(d[race]))
+                    .attr("height", d => innerHeight - y(d[race]));
+            });
+        }
+
+        // Observador de animación por scroll
+        const animateObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const delay = entry.target.dataset.delay || 0;
+                    setTimeout(() => {
+                        entry.target.classList.add('visible');
+                    }, parseInt(delay));
+                    
+                    // Activar dibujo del gráfico
+                    const chartArea = entry.target.querySelector('.chart-area');
+                    if (chartArea) {
+                        const chartId = chartArea.id;
+                        if (chartId === 'chart-cost') drawCostChart();
+                        else if (chartId === 'chart-return') drawReturnChart();
+                        else if (chartId === 'chart-gender') drawGenderChart();
+                        else if (chartId === 'chart-race') drawRaceChart();
+                    }
+                    
+                    animateObserver.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.2 });
+
+        // Inicialización
+        document.addEventListener("DOMContentLoaded", () => {
+            // Iniciar animación de red en hero
+            initHeroNetwork();
+            drawHeroNetwork();
+            
+            // Observar elementos animados
+            document.querySelectorAll('[data-animate]').forEach(el => {
+                animateObserver.observe(el);
+            });
+
+            // Manejo de clics en citas
+            document.querySelectorAll('.citation').forEach(cite => {
+                cite.addEventListener('click', () => {
+                    const refElement = document.getElementById(`ref-${cite.dataset.ref}`);
+                    if (refElement) {
+                        refElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        refElement.style.background = '#FFF3CD';
+                        setTimeout(() => refElement.style.background = '', 2000);
+                    }
+                });
+            });
+        });
+
+        window.addEventListener('resize', () => {
+            initHeroNetwork();
+        });
+    </script>
+</body>
+</html>
